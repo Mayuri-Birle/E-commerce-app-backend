@@ -3,8 +3,7 @@ const Sequelize = require("sequelize");
 const db = require("../config/database");
 
 const User = db.define(
-  "Users",
-  {
+  "Users", {
     name: {
       type: Sequelize.STRING,
       allowNull: false,
@@ -32,6 +31,9 @@ const User = db.define(
     },
     password: {
       type: Sequelize.STRING,
+      // set(value) {
+      //   this.setDataValue('password', hash(this.password))
+      // },
       allowNull: false,
       validate: {
         min: 8,
@@ -43,6 +45,7 @@ const User = db.define(
     passwordConfirm: {
       type: Sequelize.STRING,
       allowNull: false,
+
       validate: {
         //This only works on SAVE!!!!!!
         customValidator(value) {
@@ -53,17 +56,38 @@ const User = db.define(
         },
       },
     },
-  },
-  {
+
+
+
+  }, {
     instanceMethods: {
-      generateHash(password) {
-        return bcrypt.hash(password, bcrypt.genSaltSync(8));
-      },
-      validPassword(password) {
-        return bcrypt.compare(password, this.password);
-      },
-    },
+      validPassword: function (password) {
+        return bcrypt.compareAsync(password, this.password)
+      }
+    }
   }
+
+
 );
+
+
+
+User.beforeCreate((user, options) => {
+  // user.password // Will check if field is there or not
+  // user.password != "" // check if empty or not
+  var salt = bcrypt.genSaltSync(10);
+
+  user.password = user.password && user.password != "" ? bcrypt.hashSync(user.password, salt) : "";
+
+  user.passwordConfirm = user.passwordConfirm && user.passwordConfirm != "" ? bcrypt.hashSync(user.passwordConfirm, salt) : "";
+})
+User.prototype.toJSON = function () {
+  var values = Object.assign({}, this.get());
+
+  delete values.password;
+  delete values.passwordConfirm;
+
+  return values;
+}
 
 module.exports = User;

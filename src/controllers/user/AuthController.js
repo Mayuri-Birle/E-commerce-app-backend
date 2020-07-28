@@ -1,9 +1,8 @@
 const {
-
-  createdResponse,
   validationError,
   badRequestError,
-  okResponse,
+  unverifiedError,
+  wrongInfo,
 } = require("../../global_functions");
 const jwt = require('jsonwebtoken');
 const User = require('../../db/models/user');
@@ -11,15 +10,24 @@ const {
   Sequelize
 } = require("sequelize");
 
+const signToken = id => {
+  return jwt.sign({
+    id
+  }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN
+  })
+}
+
 const signUp = async (req, res, next) => {
   try {
-    const newUser = await User.create(req.body);
-
-    const token = jwt.sign({
-      id: newUser._id
-    }, 'mylife-manysecrets-helloworld2020s', {
-      expiresIn: '1h'
+    const newUser = await User.create({
+      name: req.body.name,
+      email: req.body.email,
+      password: req.body.password,
+      passwordConfirm: req.body.passwordConfirm,
     });
+
+    const token = signToken(newUser._id);
 
     res.status(201).json({
       status: 'sucsess',
@@ -47,10 +55,18 @@ const login = async (req, res, next) => {
   }
 
   //check if the user exist and the password is correct
+  const user = User.findOne({
+    where: {
+      email: req.body.email
+    }
+  });
 
 
+  if (!user || !(await user.validPassword(password, user.password))) {
+    return wrongInfo(res, 'Incorrect email or password');
+  }
   //if everything is ok send the token to client
-  const token = ''
+  const token = signToken(user._id);
   res.status(200).json({
     status: 'sucsess',
     token

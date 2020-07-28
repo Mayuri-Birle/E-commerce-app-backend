@@ -32,6 +32,10 @@ const notFoundError = function (res, message) {
   return successResponse(res, 404, {}, message);
 }
 
+const wrongInfo = function (res, message) {
+  return successResponse(res, 401, {}, message);
+}
+
 const forbiddenError = function (res, msg) {
   return successResponse(res, 403, {}, msg);
 }
@@ -118,6 +122,7 @@ const ReE = function (res, err, code) { // Error Web Response
 module.exports = {
   okResponse,
   to,
+  wrongInfo,
   createdResponse,
   noContentResponse,
   notFoundError,
