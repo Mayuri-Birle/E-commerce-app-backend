@@ -1,22 +1,21 @@
-'use strict';
+"use strict";
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('Users', {
+    await queryInterface.createTable("Users", {
       id: {
         allowNull: false,
-
         primaryKey: true,
-        type: DataTypes.UUID,
-        defaultValue: Sequelize.UUIDV4
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
       },
       name: {
         type: Sequelize.STRING,
         allowNull: false,
         validate: {
           notNull: {
-            msg: 'Please enter your name'
-          }
-        }
+            msg: "Please enter your name",
+          },
+        },
       },
       email: {
         type: Sequelize.STRING,
@@ -27,12 +26,12 @@ module.exports = {
         validate: {
           isEmail: true,
           notNull: {
-            msg: 'Please enter your email'
-          }
-        }
+            msg: "Please enter your email",
+          },
+        },
       },
       photo: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
       },
       password: {
         type: Sequelize.STRING,
@@ -40,30 +39,30 @@ module.exports = {
         validate: {
           min: 8,
           notNull: {
-            msg: 'Please enter the password'
-          }
-        }
+            msg: "Please enter the password",
+          },
+        },
       },
       passwordConfirm: {
         type: Sequelize.STRING,
         allowNull: false,
         validate: {
           notNull: {
-            msg: 'Please enter the password'
-          }
-        }
+            msg: "Please enter the password",
+          },
+        },
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('Users');
-  }
+    await queryInterface.dropTable("Users");
+  },
 };
