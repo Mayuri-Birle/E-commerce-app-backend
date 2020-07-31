@@ -1,22 +1,29 @@
 const {
-  validationError,
+  unAuthorizedError,
   badRequestError,
-  unverifiedError,
-  wrongInfo,
+  okResponse,
 } = require("../../global_functions");
+const {
+  promisify
+} = require('util');
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt-nodejs");
+const bcrypt = require("bcrypt");
 const User = require("../../db/models/user");
 const {
-  Sequelize
+  Sequelize,
+  UniqueConstraintError
 } = require("sequelize");
+const {
+  JWT_SECRET,
+  JWT_EXPIRES_IN
+} = require("../../db/config");
 
 const signToken = (id) => {
   return jwt.sign({
-      id,
+      id: id,
     },
-    "mylife-manysecrets-helloworld2020s", {
-      expiresIn: "1h",
+    JWT_SECRET, {
+      expiresIn: JWT_EXPIRES_IN,
     }
   );
 };
@@ -29,20 +36,14 @@ const signUp = async (req, res, next) => {
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
     });
-
     const token = signToken(newUser._id);
-
-    res.status(201).json({
-      status: "sucsess",
-      token,
-      data: {
-        user: newUser,
-      },
-    });
+    newUser.token = token;
+    console.log(token);
+    return okResponse(res, newUser, "SignUp Successful");
   } catch (err) {
-    console.log(err);
-    return validationError(res, "user not created");
+    return badRequestError(res, err);
   }
+
 };
 
 const login = async (req, res, next) => {
@@ -57,42 +58,54 @@ const login = async (req, res, next) => {
   }
 
   //check if the user exist and the password is correct
-  try {
-    const user = await User.findOne({
-      where: {
-        email: req.body.email,
-      },
-    });
-    console.log(user);
-    console.log(user.password);
-    console.log(req.body.password);
-    const validPassword = await bcrypt.compare(req.body.password, user.password);
 
-    if (!user || !validPassword) {
-      return res.status(401).json({
-        status: 401,
-        message: "Incorrect email or password",
-      });
-    }
-
-  } catch (error) {
-    next(error);
-  }
   const user = await User.findOne({
     where: {
       email: req.body.email,
     },
   });
+  if (user === undefined) return badRequestError(res, "Invalid email");
+  const validPassword = await bcrypt.compare(req.body.password, user.password);
+
+  if (!validPassword)
+    return unAuthorizedError(res, "Incorrect password or email");
+
   //if everything is ok send the token to client
   const token = signToken(user._id);
-  return res.status(200).json({
-    status: "success",
-    token,
-  });
+  return okResponse(res, "Logged In");
+};
 
+const protect = async (req, res, next) => {
+  let token;
+  //Getting token and check of it's there
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  }
+
+  if (!token) {
+    return next(
+      unAuthorizedError(res, 'You are not logged in')
+    );
+  }
+  // verification token
+
+
+  const decoded = await promisify(jwt.verify)(token, JWT_SECRET);
+  console.log(decoded);
+  //check if user still exists
+
+  //check if user changed password after token is issued
+
+
+
+  next();
 };
 
 module.exports = {
   signUp,
   login,
+  protect,
 };

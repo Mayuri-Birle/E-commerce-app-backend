@@ -9,6 +9,8 @@ const path = require("path");
 // Express Router Initialize
 const router = express.Router();
 
+// // Import API Routes.
+const userRoutes = require("./src/routes/index");
 // Express middlewares { body-parser, cors, morgan... }
 const app = express()
   .use(bodyParser.json())
@@ -28,8 +30,11 @@ db.authenticate()
   .then(() => console.log("Database Connected"))
   .catch((err) => console.log("Error: " + err));
 
-// // Import API Routes.
-const userRoutes = require("./src/routes/index");
+app.use((req, res, next) => {
+  console.log(req.headers);
+  next();
+});
+
 // Add routes as middleware.
 app.use("/api", userRoutes);
 

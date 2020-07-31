@@ -3,7 +3,7 @@ const {
   badRequestError
 } = require("../../global_functions");
 
-const User = require('../../db/models/user');
+const User = require("../../db/models/user");
 
 // Add user Controller
 // req : HTTP Request Object
@@ -33,18 +33,17 @@ const GetUser = async (req, res) => {
   let user = await User.findByPk(data.id);
   if (user === undefined) return badRequestError(res, "No user found");
 
-  return okResponse(res, user, "User Details")
-}
+  return okResponse(res, user, "User Details");
+};
 
 // Get users Controller npm
 // req : HTTP Request Object
 // res : HTTP Response Object
 const GetUsers = async (req, res) => {
-
   let users = await User.findAll();
 
   return okResponse(res, users, "Users Details");
-}
+};
 
 // Update user Controller
 // req : HTTP Request Object
@@ -52,21 +51,20 @@ const GetUsers = async (req, res) => {
 const UpdateUser = async (req, res) => {
   let data = req.params;
 
-
   let updated_user = await User.update({
     firstName: req.body.firstName,
     lastName: req.body.lastName,
-    email: req.body.email
+    email: req.body.email,
   }, {
     where: {
-      id: data.id
-    }
+      id: data.id,
+    },
   });
 
   if (!updated_user) return badRequestError(res, "User not updated");
 
   return okResponse(res, "User Updated");
-}
+};
 
 // Remove user Controller
 // req : HTTP Request Object
@@ -77,20 +75,26 @@ const RemoveUser = async (req, res) => {
 
   let removed_user = await User.destroy({
     where: {
-      id: data.id
-    }
+      id: data.id,
+    },
   });
 
   if (!removed_user) return badRequestError("User not removed");
 
   return okResponse(res, "User Removed");
-}
+};
 
+const GetProduct = async (req, res) => {
+  let users = await User.findAll();
+
+  return okResponse(res, users, "Users Details");
+};
 // Export Controllers
 module.exports = {
   AddUser,
   GetUser,
   GetUsers,
   UpdateUser,
-  RemoveUser
+  RemoveUser,
+  GetProduct,
 };
