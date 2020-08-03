@@ -1,7 +1,9 @@
 const bcrypt = require("bcrypt-nodejs");
 const Sequelize = require("sequelize");
 const db = require("../config/database");
-const { v4: uuidv4 } = require("uuid");
+const {
+  v4: uuidv4
+} = require("uuid");
 const User = db.define("Users", {
   name: {
     type: Sequelize.STRING,
@@ -19,7 +21,10 @@ const User = db.define("Users", {
     lowercase: true,
 
     validate: {
-      isEmail: { args: true, msg: "Invalid email" },
+      isEmail: {
+        args: true,
+        msg: "Invalid email"
+      },
       notNull: {
         msg: "Please enter your email",
       },
@@ -55,8 +60,23 @@ const User = db.define("Users", {
       },
     },
   },
+  passwordCreatedAt: {
+    type: Sequelize.DATE
+  }
 });
+User.prototype.changedPasswordAfter = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
 
+    return JWTTimestamp < changedTimestamp;
+  }
+
+  //False means not changed
+  return false;
+}
 User.prototype.validPassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
@@ -66,14 +86,14 @@ User.beforeCreate(async (user, options) => {
   var salt = await bcrypt.genSaltSync(10);
 
   user.password =
-    (await user.password) && user.password != ""
-      ? bcrypt.hashSync(user.password, salt)
-      : "";
+    (await user.password) && user.password != "" ?
+    bcrypt.hashSync(user.password, salt) :
+    "";
 
   user.passwordConfirm =
-    (await user.passwordConfirm) && user.passwordConfirm != ""
-      ? bcrypt.hashSync(user.passwordConfirm, salt)
-      : "";
+    (await user.passwordConfirm) && user.passwordConfirm != "" ?
+    bcrypt.hashSync(user.passwordConfirm, salt) :
+    "";
   user.id = uuidv4();
 });
 User.prototype.toJSON = function () {

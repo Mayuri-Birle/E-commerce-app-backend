@@ -7,15 +7,20 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
+        field: 'id'
       },
       name: {
         type: Sequelize.STRING,
         allowNull: false,
         validate: {
+          notEmpty: {
+            msg: 'The field cannot be empty'
+          },
           notNull: {
             msg: "Please enter your name",
           },
         },
+        field: 'name'
       },
       email: {
         type: Sequelize.STRING,
@@ -24,7 +29,14 @@ module.exports = {
         lowercase: true,
 
         validate: {
-          isEmail: true,
+          notEmpty: {
+            msg: 'The field cannot be empty'
+          },
+
+          isEmail: {
+            args: true,
+            msg: "Please enter the valid email"
+          },
           notNull: {
             msg: "Please enter your email",
           },
@@ -37,11 +49,15 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
         validate: {
+          notEmpty: {
+            msg: 'The field cannot be empty'
+          },
           min: 8,
           notNull: {
             msg: "Please enter the password",
           },
         },
+        field: 'password',
       },
       passwordConfirm: {
         type: Sequelize.STRING,
@@ -60,6 +76,9 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE,
       },
+      passwordCreatedAt: {
+        type: Sequelize.DATE
+      }
     });
   },
   down: async (queryInterface, Sequelize) => {

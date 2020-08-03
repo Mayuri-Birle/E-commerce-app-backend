@@ -36,12 +36,20 @@ const signUp = async (req, res, next) => {
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
     });
-    const token = signToken(newUser._id);
+    const token = signToken(newUser.id);
+    console.log(newUser.id);
     newUser.token = token;
     console.log(token);
     return okResponse(res, newUser, "SignUp Successful");
   } catch (err) {
-    return badRequestError(res, err);
+    const user = User.findOne({
+      where: {
+        email: req.body.email,
+      },
+    });
+    if (user) {
+      return badRequestError(res, err.errors[0].message);
+    }
   }
 
 };
@@ -72,7 +80,8 @@ const login = async (req, res, next) => {
 
   //if everything is ok send the token to client
   const token = signToken(user._id);
-  return okResponse(res, "Logged In");
+
+  return okResponse(res, token, "Logged In");
 };
 
 const protect = async (req, res, next) => {
@@ -90,15 +99,33 @@ const protect = async (req, res, next) => {
       unAuthorizedError(res, 'You are not logged in')
     );
   }
-  // verification token
 
+  try {
+    // verification token
 
-  const decoded = await promisify(jwt.verify)(token, JWT_SECRET);
-  console.log(decoded);
-  //check if user still exists
+    const decoded = await promisify(jwt.verify)(token, JWT_SECRET);
+    //check if user still exists
+
+    const freshUser = await User.findByPk(decoded.id);
+    if (!freshUser) {
+      return next(
+        unAuthorizedError(res, "Te user belonging to this token dows no longer exists")
+      );
+    }
+
+  } catch (error) {
+    res.send(error);
+  }
 
   //check if user changed password after token is issued
+  if (freshUser.changedPasswordAfter(decoded.iat)) {
+    return next(
+      unAuthorizedError(res, 'User recently changed password! Please log in again.', 401)
+    );
+  }
 
+  // GRANT ACCESS TO PROTECTED ROUTE
+  req.user = freshUser;
 
 
   next();
