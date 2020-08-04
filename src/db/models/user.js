@@ -62,8 +62,17 @@ const User = db.define("Users", {
   },
   passwordCreatedAt: {
     type: Sequelize.DATE
-  }
+  },
+}, {
+  classMethods: {
+    associate: function (models) {
+      User.hasMany(models.Cart);
+      User.hasMany(models.Order);
+    }
+  },
 });
+
+
 User.prototype.changedPasswordAfter = function (JWTTimestamp) {
   if (this.passwordChangedAt) {
     const changedTimestamp = parseInt(
@@ -104,5 +113,5 @@ User.prototype.toJSON = function () {
 
   return values;
 };
-
+console.log(User === sequelize.models.User); // true
 module.exports = User;

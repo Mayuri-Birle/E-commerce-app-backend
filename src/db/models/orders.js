@@ -1,14 +1,6 @@
-const {
-    Sequelize,
-    DataTypes,
-    Model
-} = require('sequelize');
-const sequelize = new Sequelize('sqlite::memory');
-
-class Orders extends Model {}
-
-Orders.init({
-    // Model attributes are defined here
+const Sequelize = require('sequelize');
+const db = require("../config/database");
+const Orders = db.define("Orders", {
     orderId: {
         type: Sequelize.INTEGER
     },
@@ -25,10 +17,25 @@ Orders.init({
         allowNull: false
     },
 }, {
-    // Other model options go here
-    sequelize, // We need to pass the connection instance
-    modelName: 'Orders' // We need to choose the model name
-});
+    classMethods: {
+        associate: function (models) {
+            Order.belongsTo(models.Product);
+            Order.belongsTo(models.User);
+            Order.belongsTo(models.Billing, {
+                foreignKey: {
+                    allowNull: false,
+                    targetKey: 'orderId'
+                }
+            });
 
-// the defined model is the class itself
-console.log(Orders === sequelize.models.Orders); // true
+            Order.belongsTo(models.Shipping, {
+                foreignKey: {
+                    allowNull: false,
+                    targetKey: 'orderId'
+                }
+            });
+        }
+    },
+});
+// console.log(Orders === sequelize.models.Orders); // true
+module.exports = Orders;

@@ -1,20 +1,7 @@
-const {
-    Sequelize,
-    DataTypes,
-    Model
-} = require('sequelize');
-const sequelize = new Sequelize('sqlite::memory');
+const Sequelize = require("sequelize");
+const db = require("../config/database");
+const Billing = db.define("Billing", {
 
-class Billing extends Model {}
-
-Billing.init({
-    // Model attributes are defined here
-
-    id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
-        primaryKey: true
-    },
     billingName: {
         type: Sequelize.STRING,
         allowNull: false
@@ -47,12 +34,18 @@ Billing.init({
             len: [0, 10]
         }
     }
-
 }, {
-    // Other model options go here
-    sequelize, // We need to pass the connection instance
-    modelName: 'Billing' // We need to choose the model name
+    classMethods: {
+        associate: function (models) {
+            Billing.hasMany(models.Order);
+        }
+    },
+    timestamps: false
 });
 
+
+
 // the defined model is the class itself
-console.log(Billing === sequelize.models.Billing); // true
+// console.log(Billing === sequelize.models.Billing); // true
+
+module.exports = Billing;

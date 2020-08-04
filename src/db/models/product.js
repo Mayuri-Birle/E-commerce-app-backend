@@ -1,13 +1,6 @@
-const {
-    Sequelize,
-    DataTypes,
-    Model
-} = require('sequelize');
-const sequelize = new Sequelize('sqlite::memory');
-
-class User extends Model {}
-
-User.init({
+const Sequelize = require('sequelize');
+const db = require("../config/database");
+const Product = db.define("Product", {
     // Model attributes are defined here
     name: {
         type: Sequelize.STRING,
@@ -37,13 +30,23 @@ User.init({
     available: {
         type: Sequelize.BOOLEAN,
         defaultValue: true
-    }
+    },
 
 }, {
-    // Other model options go here
-    sequelize, // We need to pass the connection instance
-    modelName: 'User' // We need to choose the model name
+    classMethods: {
+        associate: function (models) {
+            Product.belongsTo(models.Category, {
+                foreignKey: {
+                    allowNull: false
+                }
+            });
+            Product.hasMany(models.Cart);
+            Product.hasMany(models.Order);
+        }
+    },
 });
 
+
 // the defined model is the class itself
-console.log(User === sequelize.models.User); // true
+// console.log(Product === sequelize.models.Product); // true
+module.exports = Product;
